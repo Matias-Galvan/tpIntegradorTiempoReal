@@ -1,0 +1,11 @@
+{
+  "name": "tp-integrador-tiempo-real",
+  "private": true,
+  "scripts": {
+    "gama-server": "cmd /c start-gama-headless.bat",
+    "mock-parking": "node mock-server/parkingServer.js",
+    "mock-traffic": "node mock-server/server.js",
+    "dev": "npm --prefix web-dashboard run dev"
+  }
+}
+

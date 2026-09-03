@@ -218,3 +218,63 @@ npm run dev
 | **Drenaje de Tráfico** | Transición horaria de 18:00 hs a 23:00 hs | ✅ Reducción de 450 a 50 agentes; congestión de Crítico a Fluido |
 | **Mapa Interactivo** | Renderizado SVG con semáforo cromático y HUD | ✅ 60 FPS constantes con micro-inspección de arterias |
 
+---
+
+## 9. Subsistema de Estacionamiento Inteligente Multi-Planta
+
+El proyecto incorpora un segundo subsistema integral diseñado bajo los mismos principios de tiempo real:
+
+### 9.1. Especificaciones Físicas
+- **4 Plantas (A, B, C, D)** con 100 plazas de aparcamiento por planta ($4 \times 100 = 400$ plazas totales).
+- **Nomenclatura**: Normalizada en formato `[Piso]-[Nro]`, ej: `A-1` a `A-100`, `B-1` a `B-100`, `C-1` a `C-100` y `D-1` a `D-100`.
+- **Sensores Binarios**: Cada plaza cuenta con un sensor digital visual (`🟢 DISPONIBLE` / `🔴 OCUPADO`).
+
+### 9.2. Cartelería Digital de Aforo con Flechas LED (`ParkingSignage.jsx`)
+- **Cartel General (Tótem Central)**: Balance de las 400 plazas del edificio.
+- **Carteles por Planta (Plantas A, B, C, D)**:
+  - ⬅️ **Flecha Roja**: Cantidad exacta de lugares ocupados.
+  - ➡️ **Flecha Verde**: Cantidad exacta de lugares disponibles.
+  - Barra de llenado porcentual con tags `ABIERTO`, `CASI LLENO` y `COMPLETO`.
+
+### 9.3. Control de Accesos y Registro Temporal Exacto (`AccessLedger.jsx`)
+- Al ingresar por la barrera principal, el sistema almacena la hora exacta $T_{in}$ (formato `HH:MM:SS`) y asigna la plaza.
+- Al salir, registra $T_{out}$, calcula la estadía total transcurrida y libera el sensor de la plaza.
+
+### 9.4. Tráfico Interno y Detección de Atascamientos (`InternalTrafficMonitor.jsx`)
+- Monitoreo continuo de velocidad y densidad en rampas de interconexión (`Rampa A -> B`, `Rampa B -> C`, `Rampa C -> D`) y pasillos centrales.
+- **Detección Automática de Cuellos de Botella (Jam Detection)** cuando la densidad supera el 75% o los vehículos se detienen por tiempo prolongado, activando alarmas visuales inmediatas.
+
+### 9.5. Plano Arquitectónico 2D Interactivo (`ParkingFloorPlan.jsx`)
+- **Modo Dual**: Alternador entre `🗺️ Plano 2D` (arquitectura vial) y `🔢 Grilla 100` (matriz de sensores).
+- **Diseño Vial**:
+  - Rampa de entrada con demarcación vial y flecha direccional verde.
+  - Rampa de egreso/interconexión inter-planta con señalización de atascamiento.
+  - 4 bahías de 25 plazas c/u con avenida central y carriles de maniobra norte y sur.
+  - Sensores cenitales LED (verde/rojo) y siluetas vectoriales de autos con patente legible.
+  - Selector interactivo con modal para inspección de patente, hora $T_{in}$ y piso.
+
+### 9.6. Ejecución del Módulo de Estacionamiento
+
+**Opción GAMA Server (Producción / Simulación Oficial):**
+```cmd
+cd web-dashboard
+npm run gama-server
+```
+Y en otra terminal:
+```cmd
+npm run dev
+```
+
+**Opción Mock Server (Desarrollo rápido):**
+```cmd
+cd web-dashboard
+npm run mock-parking
+```
+Y en otra terminal:
+```cmd
+npm run dev
+```
+Luego seleccionar la pestaña **"🅿️ Estacionamiento 4 Plantas"** en la cabecera superior.
+
+
+
