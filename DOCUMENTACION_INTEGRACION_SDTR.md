@@ -253,7 +253,27 @@ El proyecto incorpora un segundo subsistema integral diseñado bajo los mismos p
   - Sensores cenitales LED (verde/rojo) y siluetas vectoriales de autos con patente legible.
   - Selector interactivo con modal para inspección de patente, hora $T_{in}$ y piso.
 
-### 9.6. Ejecución del Módulo de Estacionamiento
+### 9.6. Dimensión SDTR y Algoritmos de Concurrencia
+
+El estacionamiento implementa tres pilares fundamentales de Sistemas Distribuidos de Tiempo Real:
+
+1. **Control de Concurrencia en Rampas (Semáforos Mutex - `RampMutexIndicator.jsx`)**:
+   - Resuelve el problema de exclusión mutua en rampas de un solo carril alternado.
+   - Máquina de estados: `UP` (ascenso), `CLEARING` (vaciado preventivo de seguridad de 3s) y `DOWN` (descenso).
+   - Colas de espera balanceadas para evitar inanición (*Starvation-Free*) y prevención de interbloqueos (*Deadlock Prevention*).
+
+2. **Algoritmo de Despacho Predictivo Inteligente (Smart Dispatching)**:
+   - Evalúa en el momento del ingreso una función de costo $J(P, F)$ en tiempo real:
+     $$J(P, F) = 0.40 \cdot \text{DistanciaVertical} + 0.35 \cdot \text{CongestiónRampas} + 0.25 \cdot \text{DistanciaPasillo}$$
+   - Asigna la plaza óptima global calculando la ruta de navegación y el tiempo estimado de llegada (*ETA* en segundos).
+   - Enfoca automáticamente la planta correspondiente en el plano arquitectónico.
+
+3. **Protocolo Crítico de Evacuación de Emergencia con Medición de WCET (`EmergencyEvacuationPanel.jsx`)**:
+   - Conmuta el sistema al modo de seguridad crítica (*Hard Real-Time Safety*).
+   - Todas las rampas pasan a descenso exclusivo (`OVERRIDE_DOWN`) y las barreras se abren.
+   - Mide el tiempo de peor caso de evacuación (*Worst-Case Evacuation Time - WCET*) frente al *Deadline* crítico reglamentario ($T_{crit} = 180\text{ s}$).
+
+### 9.7. Ejecución del Módulo de Estacionamiento
 
 **Opción GAMA Server (Producción / Simulación Oficial):**
 ```cmd
@@ -275,6 +295,7 @@ Y en otra terminal:
 npm run dev
 ```
 Luego seleccionar la pestaña **"🅿️ Estacionamiento 4 Plantas"** en la cabecera superior.
+
 
 
 
