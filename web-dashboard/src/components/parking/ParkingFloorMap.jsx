@@ -13,6 +13,7 @@ export const ParkingFloorMap = React.memo(function ParkingFloorMap({
   onFloorChange,
   isJamActive = false,
   inTransit = 0,
+  isEmergency = false,
 }) {
   const [selectedFloor, setSelectedFloor] = useState(activeFloor || 'A');
   const [viewMode, setViewMode] = useState('PLAN'); // 'PLAN' | 'GRID'
@@ -129,6 +130,7 @@ export const ParkingFloorMap = React.memo(function ParkingFloorMap({
           onSelectSpot={setSelectedSpot}
           isJamActive={isJamActive}
           inTransit={inTransit}
+          isEmergency={isEmergency}
         />
       )}
 

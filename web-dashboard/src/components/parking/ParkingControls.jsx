@@ -13,6 +13,9 @@ export const ParkingControls = React.memo(function ParkingControls({
   onRateChange,
   onSpawnManual,
   disabled = false,
+  smartDispatchEnabled = true,
+  onToggleSmartDispatch,
+  lastDispatch = null,
 }) {
   return (
     <div className="panel-card simulation-controls-panel parking-controls-bar">
@@ -76,6 +79,31 @@ export const ParkingControls = React.memo(function ParkingControls({
             {Math.round(arrivalRate * 60)} autos / min
           </span>
         </div>
+      </div>
+
+      {/* Fila inferior: Despacho Predictivo SDTR */}
+      <div className="controls-sdtr-subrow">
+        <label className="sdtr-toggle-label">
+          <input
+            type="checkbox"
+            checked={smartDispatchEnabled}
+            onChange={(e) => onToggleSmartDispatch && onToggleSmartDispatch(e.target.checked)}
+            className="sdtr-checkbox"
+          />
+          <span className={`sdtr-toggle-text ${smartDispatchEnabled ? 'text-active' : ''}`}>
+            ⚡ Despacho Predictivo Inteligente (Balanceo de Carga J)
+          </span>
+        </label>
+
+        {lastDispatch && (
+          <div className="last-dispatch-hud">
+            <span className="hud-label">ASIGNACIÓN ÓPTIMA:</span>
+            <span className="hud-plate">{lastDispatch.vehicleId}</span>
+            <span className="hud-arrow">➔</span>
+            <span className="hud-spot">{lastDispatch.spotId}</span>
+            <span className="hud-meta">({lastDispatch.route} • ETA: <strong>{lastDispatch.eta}s</strong>)</span>
+          </div>
+        )}
       </div>
     </div>
   );

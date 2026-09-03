@@ -15,6 +15,7 @@ export const ParkingFloorPlan = React.memo(function ParkingFloorPlan({
   onSelectSpot,
   isJamActive = false,
   inTransit = 0,
+  isEmergency = false,
 }) {
   // Organizar los 100 puestos en 4 filas de 25
   const row1 = spots.filter((s) => s.num >= 1 && s.num <= 25);
@@ -193,7 +194,7 @@ export const ParkingFloorPlan = React.memo(function ParkingFloorPlan({
         {/* Rampa de Ingreso (Lado Izquierdo) */}
         {/* ------------------------------------------------------------- */}
         <g transform="translate(16, 170)">
-          <rect x={0} y={0} width={34} height={140} rx={6} fill="url(#ramp-stripes)" stroke="#f59e0b" strokeWidth={1} opacity={0.8} />
+          <rect x={0} y={0} width={34} height={140} rx={6} fill="url(#ramp-stripes)" stroke={isEmergency ? '#ef4444' : '#f59e0b'} strokeWidth={1} opacity={0.8} />
           <text
             x={17}
             y={70}
@@ -204,29 +205,39 @@ export const ParkingFloorPlan = React.memo(function ParkingFloorPlan({
             letterSpacing="2"
             textAnchor="middle"
           >
-            RAMPA ENTRADA
+            {isEmergency ? 'ENTRADA CERRADA' : 'RAMPA ENTRADA'}
           </text>
-          <polygon points="17,10 11,22 23,22" fill="#10b981" />
+          <polygon points="17,10 11,22 23,22" fill={isEmergency ? '#ef4444' : '#10b981'} />
+
+          {/* Mini Semáforo Mutex de Entrada */}
+          <rect x={38} y={10} width={8} height={18} rx={2} fill="#0f172a" stroke="#334155" strokeWidth={0.8} />
+          <circle cx={42} cy={14} r={2.2} fill={isEmergency ? '#ef4444' : '#334155'} />
+          <circle cx={42} cy={22} r={2.2} fill={!isEmergency ? '#10b981' : '#334155'} />
         </g>
 
         {/* ------------------------------------------------------------- */}
         {/* Rampa de Egreso / Inter-piso (Lado Derecho) */}
         {/* ------------------------------------------------------------- */}
         <g transform="translate(930, 170)">
-          <rect x={0} y={0} width={34} height={140} rx={6} fill="url(#ramp-stripes)" stroke={isJamActive ? '#ef4444' : '#f59e0b'} strokeWidth={isJamActive ? 2 : 1} opacity={0.8} />
+          <rect x={0} y={0} width={34} height={140} rx={6} fill="url(#ramp-stripes)" stroke={isEmergency || isJamActive ? '#ef4444' : '#f59e0b'} strokeWidth={isEmergency || isJamActive ? 2 : 1} opacity={0.8} />
           <text
             x={17}
             y={70}
             transform="rotate(90 17 70)"
-            fill={isJamActive ? '#fca5a5' : '#ffffff'}
+            fill={isEmergency || isJamActive ? '#fca5a5' : '#ffffff'}
             fontSize="9"
             fontWeight="800"
             letterSpacing="2"
             textAnchor="middle"
           >
-            {isJamActive ? 'RAMPA ATASCADA' : 'RAMPA SALIDA'}
+            {isEmergency ? 'EVACUACIÓN DESCARGA' : isJamActive ? 'RAMPA ATASCADA' : 'RAMPA INTER-PISO'}
           </text>
           <polygon points="17,130 11,118 23,118" fill={isJamActive ? '#ef4444' : '#38bdf8'} />
+
+          {/* Mini Semáforo Mutex de Egreso */}
+          <rect x={-12} y={10} width={8} height={26} rx={2} fill="#0f172a" stroke="#334155" strokeWidth={0.8} />
+          <circle cx={-8} cy={14} r={2.2} fill={isJamActive ? '#ef4444' : '#334155'} />
+          <circle cx={-8} cy={22} r={2.2} fill={isEmergency ? '#f59e0b' : '#334155'} />
         </g>
 
         {/* ------------------------------------------------------------- */}
