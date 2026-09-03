@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "mock-server": "node ../mock-server/server.js",
+    "mock-parking": "node ../mock-server/parkingServer.js",
     "gama-server": "cmd /c ..\\start-gama-headless.bat"
   },
   "dependencies": {

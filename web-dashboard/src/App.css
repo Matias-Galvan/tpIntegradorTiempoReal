@@ -856,3 +856,963 @@
   transition: width 0.3s ease;
 }
 
+/* ==========================================================================
+   Módulo de Navegación de Pestañas (Tráfico Urbano vs Estacionamiento)
+   ========================================================================== */
+
+.app-module-tabs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.7);
+  padding: 4px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+
+.module-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.module-tab-btn:hover {
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.module-tab-btn.tab-active {
+  background: var(--primary-color);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+}
+
+/* ==========================================================================
+   Parking Dashboard & Signage (Carteles de Aforo con Flechas LED)
+   ========================================================================== */
+
+.parking-dashboard-root {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.parking-signage-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.signage-general-wrapper {
+  width: 100%;
+}
+
+.signage-floors-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 1024px) {
+  .signage-floors-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .signage-floors-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Display Digital LED */
+.led-signboard {
+  background: #080d1a;
+  border: 2px solid #1e293b;
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 0 16px rgba(0, 0, 0, 0.8);
+  position: relative;
+  overflow: hidden;
+}
+
+.led-signboard-general {
+  border-color: #38bdf8;
+  background: radial-gradient(circle at top, #0f1c34 0%, #060a14 100%);
+  box-shadow: 0 10px 30px rgba(56, 189, 248, 0.15), inset 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+.signboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.signboard-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.signboard-icon {
+  font-size: 20px;
+}
+
+.signboard-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--text-primary);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.signboard-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.signboard-total-tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-family: ui-monospace, monospace;
+}
+
+/* Panel Central de Números y Flechas LED */
+.led-display-panel {
+  background: #03060c;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.led-zone {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.led-counter-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.led-counter-right {
+  align-items: flex-end;
+}
+
+.led-arrow {
+  font-size: 24px;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+.led-arrow-red {
+  color: #ef4444;
+}
+
+.led-arrow-green {
+  color: #10b981;
+}
+
+.led-number {
+  font-family: ui-monospace, 'Courier New', monospace;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 1px;
+}
+
+.led-number-red {
+  color: #ef4444;
+  text-shadow: 0 0 12px rgba(239, 68, 68, 0.7);
+}
+
+.led-number-green {
+  color: #10b981;
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.7);
+}
+
+.led-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+}
+
+.led-divider {
+  display: flex;
+  align-items: center;
+}
+
+.led-status-pill {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+
+.status-open {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.status-full {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  animation: pulse 1.5s infinite;
+}
+
+.signboard-bar-track {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.signboard-bar-fill {
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.bar-normal {
+  background: #10b981;
+}
+
+.bar-warning {
+  background: #eab308;
+}
+
+.bar-danger {
+  background: #ef4444;
+}
+
+/* ==========================================================================
+   Plano Interactivo de Planta (100 Plazas)
+   ========================================================================== */
+
+.parking-floor-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.floor-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.floor-tabs-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.floor-tab-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 8px 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.floor-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: #475569;
+}
+
+.floor-tab-active {
+  background: #1e293b;
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+}
+
+.floor-tab-letter {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.floor-tab-desc {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.floor-filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.floor-quick-stat {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.stat-free {
+  color: #10b981;
+}
+
+.stat-occ {
+  color: #ef4444;
+}
+
+.filter-pill-group {
+  display: flex;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 3px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.filter-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.filter-pill.pill-active {
+  background: #334155;
+  color: #ffffff;
+}
+
+/* Grilla de 100 Puestos */
+.spots-grid-container {
+  background: #090d16;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.spots-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 1024px) {
+  .spots-grid {
+    grid-template-columns: repeat(8, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .spots-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.spot-cell {
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.spot-cell:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.spot-cell.spot-free {
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.04);
+}
+
+.spot-cell.spot-free:hover {
+  border-color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+}
+
+.spot-cell.spot-occupied {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: rgba(239, 68, 68, 0.05);
+}
+
+.spot-cell.spot-occupied:hover {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.spot-cell.spot-selected {
+  outline: 2px solid #38bdf8;
+  outline-offset: 1px;
+}
+
+.sensor-led-indicator {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.sensor-light {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.sensor-green {
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.sensor-red {
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+}
+
+.spot-id-label {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.spot-icon {
+  font-size: 14px;
+}
+
+.spot-plate-tag {
+  font-family: ui-monospace, monospace;
+  font-size: 9px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Inspector Modal / Popover */
+.spot-inspector-card {
+  background: #0f172a;
+  border: 1px solid #38bdf8;
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+.inspector-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.inspector-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.inspector-badge {
+  font-family: ui-monospace, monospace;
+  font-weight: 800;
+  font-size: 13px;
+  background: #38bdf8;
+  color: #0f172a;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.inspector-title h4 {
+  font-size: 13px;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.inspector-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.inspector-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.inspector-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.row-label {
+  color: var(--text-muted);
+}
+
+.row-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.highlight-time {
+  color: #38bdf8;
+  font-size: 13px;
+}
+
+/* ==========================================================================
+   Monitor de Tráfico Interno y Detección de Atascamientos
+   ========================================================================== */
+
+.internal-traffic-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.jam-alert-banner {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid #ef4444;
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  animation: pulse 1.6s infinite;
+}
+
+.jam-alert-icon {
+  font-size: 24px;
+}
+
+.jam-alert-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: #fee2e2;
+}
+
+.corridors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.corridor-card {
+  background: #0d1322;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.corridor-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.corridor-title-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.corridor-icon {
+  font-size: 15px;
+}
+
+.corridor-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.corridor-status-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.tag-fluid {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+
+.tag-jammed {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.corridor-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+}
+
+.corridor-stat-label {
+  color: var(--text-muted);
+}
+
+.corridor-stat-val {
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.corridor-progress-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.corridor-progress-bar {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.corridor-ok {
+  background: #10b981;
+}
+
+.corridor-warning {
+  background: #eab308;
+}
+
+.corridor-danger {
+  background: #ef4444;
+}
+
+/* ==========================================================================
+   Bitácora de Accesos (Access Ledger T_in / T_out)
+   ========================================================================== */
+
+.access-ledger-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ledger-table-wrapper {
+  overflow-x: auto;
+}
+
+.ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ledger-table th {
+  text-align: left;
+  padding: 10px 12px;
+  background: #090e1a;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 600;
+}
+
+.ledger-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.row-entry {
+  background: rgba(16, 185, 129, 0.02);
+}
+
+.row-exit {
+  background: rgba(56, 189, 248, 0.02);
+}
+
+.event-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.4px;
+}
+
+.badge-entry {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-exit {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.spot-table-pill {
+  font-family: ui-monospace, monospace;
+  font-weight: 700;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   Parking Controls Bar & Rate Slider
+   ========================================================================== */
+
+.parking-controls-bar {
+  padding: 14px 18px;
+}
+
+.arrival-rate-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.rate-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.rate-slider {
+  width: 140px;
+  accent-color: var(--primary-color);
+  cursor: pointer;
+}
+
+.rate-value-pill {
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  background: #1e293b;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  color: #38bdf8;
+}
+
+.btn-trigger-jam {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+  font-size: 12px;
+}
+
+.btn-trigger-jam:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+.btn-clear-jam {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid #10b981;
+  font-size: 12px;
+}
+
+.btn-clear-jam:hover {
+  background: #10b981;
+  color: #ffffff;
+}
+
+/* ============================================================================
+   Plano Arquitectónico 2D del Parking (ParkingFloorPlan)
+   ============================================================================ */
+.parking-floorplan-container {
+  display: flex;
+  flex-direction: column;
+  background: #070d18;
+  border-radius: 10px;
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  padding: 16px;
+  margin-top: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.floorplan-hud-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hud-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(14, 165, 233, 0.15);
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #38bdf8;
+}
+
+.hud-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #38bdf8;
+  box-shadow: 0 0 6px #38bdf8;
+}
+
+.hud-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-light {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.light-green {
+  background: #10b981;
+  box-shadow: 0 0 6px #10b981;
+}
+
+.light-red {
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef4444;
+}
+
+.legend-box {
+  width: 10px;
+  height: 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 2px;
+}
+
+.parking-blueprint-svg {
+  width: 100%;
+  height: auto;
+  min-height: 420px;
+  border-radius: 8px;
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.5));
+}
+
+.svg-spot-group rect {
+  transition: fill 0.2s ease, stroke 0.2s ease;
+}
+
+.svg-spot-group:hover rect {
+  stroke-width: 1.5;
+  filter: brightness(1.2);
+}
+
+/* Conmutador de Modo de Vista (Plano 2D vs Grilla) */
+.view-mode-toggle-group {
+  display: inline-flex;
+  background: #0f172a;
+  padding: 3px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  gap: 4px;
+}
+
+.view-toggle-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.view-toggle-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.view-toggle-btn.view-active {
+  background: var(--primary-color);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.4);
+}
+
+/* Efecto de pulso en botón de simulación activa */
+.btn-pulse-glow {
+  box-shadow: 0 0 14px rgba(14, 165, 233, 0.7);
+  animation: pulse-border 1.5s infinite;
+}
+
+@keyframes pulse-border {
+  0% {
+    box-shadow: 0 0 6px rgba(14, 165, 233, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(14, 165, 233, 0.8);
+  }
+  100% {
+    box-shadow: 0 0 6px rgba(14, 165, 233, 0.4);
+  }
+}
+
+

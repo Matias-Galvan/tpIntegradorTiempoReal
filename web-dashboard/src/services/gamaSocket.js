@@ -23,9 +23,18 @@ class GamaSocketService {
     }
 
     this.url = import.meta.env.VITE_GAMA_WS_URL || 'ws://localhost:6868';
-    this.modelPath = 'C:/Users/matia/Desktop/Facultad/Programacion en tiempo real/Trabajo integrador/tpIntegradorTiempoReal/gama-traffic-simulation/models/RoadTrafficSDTR.gaml';
-    // Usar HeadlessServer para evitar creación de 'Image Display Surface' que bloquean el servidor headless
-    this.experimentName = 'HeadlessServer';
+    
+    // Identificar módulo activo guardado (por defecto PARKING para esta entrega)
+    const savedTab = typeof localStorage !== 'undefined' ? (localStorage.getItem('sdtr_active_tab') || 'PARKING') : 'PARKING';
+    this.activeModule = savedTab;
+
+    if (this.activeModule === 'PARKING') {
+      this.modelPath = 'C:/Users/matia/Desktop/Facultad/Programacion en tiempo real/Trabajo integrador/tpIntegradorTiempoReal/gama-traffic-simulation/models/SmartParkingSDTR.gaml';
+      this.experimentName = 'HeadlessParkingServer';
+    } else {
+      this.modelPath = 'C:/Users/matia/Desktop/Facultad/Programacion en tiempo real/Trabajo integrador/tpIntegradorTiempoReal/gama-traffic-simulation/models/RoadTrafficSDTR.gaml';
+      this.experimentName = 'HeadlessServer';
+    }
 
     this.socket = null;
     this.connectionState = ConnectionState.DISCONNECTED;
@@ -131,16 +140,36 @@ class GamaSocketService {
   }
 
   /**
+   * Conmuta el módulo activo (TRAFFIC o PARKING) y carga el modelo correspondiente si es necesario
+   */
+  setActiveModule(moduleName) {
+    const isTraffic = moduleName === 'TRAFFIC';
+    const targetModel = isTraffic
+      ? 'C:/Users/matia/Desktop/Facultad/Programacion en tiempo real/Trabajo integrador/tpIntegradorTiempoReal/gama-traffic-simulation/models/RoadTrafficSDTR.gaml'
+      : 'C:/Users/matia/Desktop/Facultad/Programacion en tiempo real/Trabajo integrador/tpIntegradorTiempoReal/gama-traffic-simulation/models/SmartParkingSDTR.gaml';
+    const targetExperiment = isTraffic ? 'HeadlessServer' : 'HeadlessParkingServer';
+
+    this.activeModule = moduleName;
+
+    // Si ya estamos cargando o tenemos cargado ese mismo experimento, no recargar
+    if (this.modelPath === targetModel && this.experimentName === targetExperiment && (this.expId || this.isLoading)) {
+      console.info(`[GamaSocket] Módulo ${moduleName} ya activo o en carga.`);
+      return;
+    }
+
+    console.info(`[GamaSocket] 🔄 Conmutando a módulo: ${moduleName} (${targetExperiment})`);
+    this.loadModel(targetModel, targetExperiment);
+  }
+
+  /**
    * Inicia o reanuda la simulación en GAMA Server.
    * Si el modelo aún no fue cargado, solicita la carga y programa el play automático.
    */
   play() {
-    if (!this.expId) {
-      console.info('[GamaSocket] exp_id no inicializado. Cargando modelo...');
+    if (!this.expId || !this.isModelLoaded) {
+      console.info(`[GamaSocket] Modelo ${this.experimentName} no listo (exp_id=${this.expId}). Cargando y programando Play...`);
       this.pendingPlay = true;
-      if (!this.isLoading) {
-        this.loadModel();
-      }
+      this.loadModel();
       return false;
     }
 
@@ -180,12 +209,17 @@ class GamaSocketService {
    * Solicita a GAMA Server compilar y cargar el modelo en memoria
    */
   loadModel(modelPath = this.modelPath, experimentName = this.experimentName) {
-    if (this.isLoading) {
-      console.info('[GamaSocket] Carga de modelo ya en curso...');
+    if (this.isLoading && this.modelPath === modelPath && this.experimentName === experimentName) {
+      console.info(`[GamaSocket] Carga de ${experimentName} ya en curso...`);
       return false;
     }
 
+    this.modelPath = modelPath;
+    this.experimentName = experimentName;
+    this.expId = null;
+    this.isModelLoaded = false;
     this.isLoading = true;
+
     console.info(`[GamaSocket] Solicitando carga de modelo: ${experimentName}`);
     return this.sendCommand({
       type: 'load',
@@ -215,6 +249,66 @@ class GamaSocketService {
       value: validHour,
       parameters: [{ name: 'current_hour', value: validHour }],
     });
+  }
+
+  /**
+   * Configura la tasa de arribo para el estacionamiento inteligente
+   */
+  setParkingArrivalRate(rate) {
+    if (this.expId) {
+      this.sendCommand({
+        type: 'ask',
+        exp_id: String(this.expId),
+        agent: 'simulation[0]',
+        action: 'set_arrival_rate_cmd',
+        args: JSON.stringify({ new_rate: rate }),
+      });
+    }
+  }
+
+  /**
+   * Induce un atascamiento en pasillo o rampa
+   */
+  triggerParkingJam(corridor = 'RAMP_A_B') {
+    if (this.expId) {
+      this.sendCommand({
+        type: 'ask',
+        exp_id: String(this.expId),
+        agent: 'simulation[0]',
+        action: 'trigger_jam_cmd',
+        args: JSON.stringify({ corridor_target: corridor }),
+      });
+    }
+  }
+
+  /**
+   * Despeja cualquier atascamiento activo
+   */
+  clearParkingJam() {
+    if (this.expId) {
+      this.sendCommand({
+        type: 'ask',
+        exp_id: String(this.expId),
+        agent: 'simulation[0]',
+        action: 'clear_jam_cmd',
+        args: '{}',
+      });
+    }
+  }
+
+  /**
+   * Dispara el ingreso manual de un vehículo en la barrera principal
+   */
+  spawnManualVehicle() {
+    if (this.expId) {
+      this.sendCommand({
+        type: 'ask',
+        exp_id: String(this.expId),
+        agent: 'simulation[0]',
+        action: 'spawn_manual_vehicle',
+        args: '{}',
+      });
+    }
   }
 
   subscribe(callback) {
@@ -432,7 +526,28 @@ class GamaSocketService {
       payload = { ...raw.content, _rawType: raw.type };
     }
 
-    // Detectar si el paquete contiene campos válidos de telemetría
+    // Soporte para Telemetría de Estacionamiento Inteligente
+    if (payload.type === 'PARKING_TELEMETRY_UPDATE') {
+      return {
+        type: 'PARKING_TELEMETRY_UPDATE',
+        cycle: payload.cycle,
+        totalSpots: payload.total_spots ?? 400,
+        totalOccupied: payload.total_occupied ?? 0,
+        totalAvailable: payload.total_available ?? (400 - (payload.total_occupied ?? 0)),
+        inTransit: payload.in_transit ?? 0,
+        arrivalRate: payload.arrival_rate ?? 0.5,
+        isJamActive: payload.is_jam_active ?? false,
+        jammedCorridor: payload.jammed_corridor ?? '',
+        floors: payload.floors ?? [],
+        corridors: payload.corridors ?? [],
+        spots: payload.spots ?? [],
+        accessLedger: payload.access_ledger ?? [],
+        timestamp: payload.timestamp || Date.now(),
+        raw: payload,
+      };
+    }
+
+    // Detectar si el paquete contiene campos válidos de telemetría de tráfico urbano
     const hasFlow = payload.traffic_flow !== undefined || payload.trafficFlow !== undefined || payload.aforo !== undefined;
     const hasVehicles = payload.active_vehicles !== undefined || payload.activeVehicles !== undefined || payload.vehiculos_activos !== undefined;
     const hasHour = payload.current_hour !== undefined || payload.currentHour !== undefined || payload.hora !== undefined;
