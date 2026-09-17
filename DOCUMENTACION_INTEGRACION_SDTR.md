@@ -15,6 +15,11 @@ El sistema permite:
 1. **Control bidireccional no bloqueante**: Iniciar, pausar, avanzar paso a paso y mutar la hora simulada (00:00 a 23:00 hs) en caliente.
 2. **Streaming de telemetría a baja latencia**: Ingesta continua de métricas macroscópicas (aforo, agentes activos, nivel de congestión global y saturación tramo a tramo).
 3. **Visualización geoespacial interactiva**: Renderizado vectorial (SVG) de la red vial urbana a 60 FPS con semaforización cromática en tiempo real y micro-inspección mediante HUD flotante.
+4. **Estacionamiento Inteligente Multi-Planta**: Asignación predictiva (Smart Dispatching), exclusión mutua en rampas (Dijkstra Mutex), libro mayor de cobro determinista y centro de notificaciones push (WhatsApp API).
+
+> [!TIP]
+> Para un análisis teórico exhaustivo enfocado en la defensa oral (conceptos fuertes, limitaciones de Soft vs Hard Real-Time, GC Jitter, TCP HoL blocking y comparativas formales), consultar el documento complementario:
+> 📄 [**CONCEPTOS_Y_ARQUITECTURA_SDTR.md**](./CONCEPTOS_Y_ARQUITECTURA_SDTR.md)
 
 ---
 
@@ -254,48 +259,44 @@ El proyecto incorpora un segundo subsistema integral diseñado bajo los mismos p
   - Selector interactivo con modal para inspección de patente, hora $T_{in}$ y piso.
 
 ### 9.6. Dimensión SDTR y Algoritmos de Concurrencia
-
 El estacionamiento implementa tres pilares fundamentales de Sistemas Distribuidos de Tiempo Real:
 
-1. **Control de Concurrencia en Rampas (Semáforos Mutex - `RampMutexIndicator.jsx`)**:
-   - Resuelve el problema de exclusión mutua en rampas de un solo carril alternado.
-   - Máquina de estados: `UP` (ascenso), `CLEARING` (vaciado preventivo de seguridad de 3s) y `DOWN` (descenso).
-   - Colas de espera balanceadas para evitar inanición (*Starvation-Free*) y prevención de interbloqueos (*Deadlock Prevention*).
+1. **Control de Concurrencia en Rampas (Semáforos Mutex / Dijkstra)**:
+   - Las rampas entre plantas (`A -> B`, `B -> C`, `C -> D`) son de carril único alternado.
+   - Implementa un protocolo de **Exclusión Mutua en Tiempo Real** (`UP` / `DOWN` / `CLEARING`) que previene deadlocks garantizando que ningún par de vehículos quede trabado frente a frente.
 
-2. **Algoritmo de Despacho Predictivo Inteligente (Smart Dispatching)**:
-   - Evalúa en el momento del ingreso una función de costo $J(P, F)$ en tiempo real:
-     $$J(P, F) = 0.40 \cdot \text{DistanciaVertical} + 0.35 \cdot \text{CongestiónRampas} + 0.25 \cdot \text{DistanciaPasillo}$$
-   - Asigna la plaza óptima global calculando la ruta de navegación y el tiempo estimado de llegada (*ETA* en segundos).
-   - Enfoca automáticamente la planta correspondiente en el plano arquitectónico.
+2. **Asignación Predictiva de Plazas (Smart Dispatching)**:
+   - La barrera calcula la plaza óptima en tiempo real evaluando la función de costo:
+     $$J(P, F) = \alpha \cdot \text{distancia} + \beta \cdot \text{congestión} + \gamma \cdot \text{balance\_bahías}$$
+   - Previene cuellos de botella evitando enviar vehículos consecutivos a la misma bahía.
 
-3. **Protocolo Crítico de Evacuación de Emergencia con Medición de WCET (`EmergencyEvacuationPanel.jsx`)**:
-   - Conmuta el sistema al modo de seguridad crítica (*Hard Real-Time Safety*).
-   - Todas las rampas pasan a descenso exclusivo (`OVERRIDE_DOWN`) y las barreras se abren.
-   - Mide el tiempo de peor caso de evacuación (*Worst-Case Evacuation Time - WCET*) frente al *Deadline* crítico reglamentario ($T_{crit} = 180\text{ s}$).
+3. **Protocolo de Emergencia y Evacuación (Worst-Case Evacuation Time - WCET)**:
+   - Botón de alarma 🚨 que levanta todas las barreras, conmuta flechas de escape y cronometra el desalojo de los 400 vehículos contrastándolo contra el deadline crítico de seguridad ($WCET \le 180\text{ s}$).
 
-### 9.7. Ejecución del Módulo de Estacionamiento
+4. **Experiencia de Ciudad Inteligente (Smart City UX)**:
+   - **Buscador Peatonal "¿Dónde dejé mi auto?"**: Autocompleta por patente y traza la ruta animada desde el núcleo de ascensores hasta el vehículo.
+   - **Facturación y Cobro Digital**: Cálculo de tarifa por tiempo de estancia ($T_{out} - T_{in}$), recargo de recarga EV, descuento PMR y emisión de ticket con código QR fiscal.
 
-**Opción GAMA Server (Producción / Simulación Oficial):**
+---
+
+## 10. Guía de Ejecución
+
+**Opción con GAMA Headless Server (Simulación Real):**
 ```cmd
 cd web-dashboard
 npm run gama-server
 ```
 Y en otra terminal:
 ```cmd
+cd web-dashboard
 npm run dev
 ```
 
-**Opción Mock Server (Desarrollo rápido):**
+**Opción Standalone / Mock Local (Desarrollo y Pruebas Rápidas):**
 ```cmd
 cd web-dashboard
-npm run mock-parking
-```
-Y en otra terminal:
-```cmd
 npm run dev
 ```
-Luego seleccionar la pestaña **"🅿️ Estacionamiento 4 Plantas"** en la cabecera superior.
+*(El dashboard detecta automáticamente si el servidor GAMA está offline y ejecuta el motor estocástico local optimista manteniendo toda la interactividad y algoritmos SDTR).*
 
-
-
-
+Luego abrir en el navegador **`http://localhost:5173`** y seleccionar la pestaña **"🅿️ Estacionamiento"**.

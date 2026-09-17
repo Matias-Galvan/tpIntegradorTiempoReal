@@ -19,7 +19,7 @@ const PORT = 6868;
 // Estado del Estacionamiento
 let isRunning = true;
 let cycle = 0;
-let arrivalRate = 0.5; // probabilidad de llegada
+let arrivalRate = 4; // autos por minuto (default realista ~1 c/ 15s)
 let isJamActive = false;
 let jammedCorridor = '';
 let simulationInterval = null;
@@ -71,14 +71,14 @@ for (let i = 0; i < 140; i++) {
   shuffledSpots[i].parkedDuration = pastMinutes * 60;
 }
 
-// Pasillos y Rampas
+// Pasillos y Rampas (inicialmente en reposo: 0 vehículos circulando)
 const corridors = [
-  { id: 'RAMP_A_B', name: 'Rampa Planta A -> B', isRamp: true, capacity: 8, vehicles: 1, density: 12, isJammed: false },
+  { id: 'RAMP_A_B', name: 'Rampa Planta A -> B', isRamp: true, capacity: 8, vehicles: 0, density: 0, isJammed: false },
   { id: 'RAMP_B_C', name: 'Rampa Planta B -> C', isRamp: true, capacity: 8, vehicles: 0, density: 0, isJammed: false },
   { id: 'RAMP_C_D', name: 'Rampa Planta C -> D', isRamp: true, capacity: 8, vehicles: 0, density: 0, isJammed: false },
-  { id: 'AISLE_A', name: 'Pasillo Principal Planta A', isRamp: false, capacity: 14, vehicles: 2, density: 14, isJammed: false },
-  { id: 'AISLE_B', name: 'Pasillo Principal Planta B', isRamp: false, capacity: 14, vehicles: 1, density: 7, isJammed: false },
-  { id: 'AISLE_C', name: 'Pasillo Principal Planta C', isRamp: false, capacity: 14, vehicles: 1, density: 7, isJammed: false },
+  { id: 'AISLE_A', name: 'Pasillo Principal Planta A', isRamp: false, capacity: 14, vehicles: 0, density: 0, isJammed: false },
+  { id: 'AISLE_B', name: 'Pasillo Principal Planta B', isRamp: false, capacity: 14, vehicles: 0, density: 0, isJammed: false },
+  { id: 'AISLE_C', name: 'Pasillo Principal Planta C', isRamp: false, capacity: 14, vehicles: 0, density: 0, isJammed: false },
   { id: 'AISLE_D', name: 'Pasillo Principal Planta D', isRamp: false, capacity: 14, vehicles: 0, density: 0, isJammed: false },
 ];
 
@@ -203,9 +203,14 @@ function processCommand(rawMessage) {
         try { args = JSON.parse(args); } catch {}
       }
 
-      if (cmd.action === 'set_arrival_rate_cmd' && args?.new_rate !== undefined) {
-        arrivalRate = Number(args.new_rate);
-        console.log(`[Parking Mock] Tasa de arribos actualizada a: ${arrivalRate}`);
+      if (cmd.action === 'set_arrival_rate_cmd') {
+        if (args?.rate_per_min !== undefined) {
+          arrivalRate = Number(args.rate_per_min);
+        } else if (args?.new_rate !== undefined) {
+          const nr = Number(args.new_rate);
+          arrivalRate = nr >= 1 ? Math.round(nr) : Math.max(1, Math.round(nr * 60));
+        }
+        console.log(`[Parking Mock] Tasa de arribos actualizada a: ${arrivalRate} autos/min`);
       } else if (cmd.action === 'trigger_jam_cmd') {
         isJamActive = true;
         jammedCorridor = args?.corridor_target || 'RAMP_A_B';
@@ -222,6 +227,17 @@ function processCommand(rawMessage) {
   } catch (e) {
     console.warn('[Parking Mock] Error procesando comando:', e);
   }
+}
+
+// Lista de agentes navegando activamente por pasillos y rampas
+let navigatingVehicles = [];
+
+function getRoute(floor, isExit = false) {
+  let segs = ['AISLE_A'];
+  if (floor === 'B') segs = ['AISLE_A', 'RAMP_A_B', 'AISLE_B'];
+  else if (floor === 'C') segs = ['AISLE_A', 'RAMP_A_B', 'AISLE_B', 'RAMP_B_C', 'AISLE_C'];
+  else if (floor === 'D') segs = ['AISLE_A', 'RAMP_A_B', 'AISLE_B', 'RAMP_B_C', 'AISLE_C', 'RAMP_C_D', 'AISLE_D'];
+  return isExit ? [...segs].reverse() : segs;
 }
 
 function spawnIncomingVehicle() {
@@ -244,6 +260,16 @@ function spawnIncomingVehicle() {
   });
   if (accessLedger.length > 25) accessLedger.pop();
 
+  navigatingVehicles.push({
+    id: `NAV-IN-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+    type: 'ENTRY',
+    car: target.car,
+    spotId: target.id,
+    route: getRoute(target.floor, false),
+    stepIndex: 0,
+    ticksInSegment: 0,
+  });
+
   return target;
 }
 
@@ -265,6 +291,16 @@ function handleVehicleExit() {
   });
   if (accessLedger.length > 25) accessLedger.pop();
 
+  navigatingVehicles.push({
+    id: `NAV-OUT-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+    type: 'EXIT',
+    car: leaving.car,
+    spotId: leaving.id,
+    route: getRoute(leaving.floor, true),
+    stepIndex: 0,
+    ticksInSegment: 0,
+  });
+
   leaving.occ = false;
   leaving.car = '';
   leaving.t_in = '';
@@ -279,25 +315,41 @@ function stepSimulation() {
     if (s.occ) s.parkedDuration += 2;
   });
 
-  // Arribos periódicos según arrivalRate
-  if (Math.random() < arrivalRate) {
+  // Avanzar vehículos navegando por pasillos y rampas (2 ticks = 2s por segmento)
+  const remainingNavigating = [];
+  for (const v of navigatingVehicles) {
+    v.ticksInSegment += 1;
+    if (v.ticksInSegment >= 2) {
+      v.stepIndex += 1;
+      v.ticksInSegment = 0;
+    }
+    if (v.stepIndex < v.route.length) {
+      remainingNavigating.push(v);
+    }
+  }
+  navigatingVehicles = remainingNavigating;
+
+  // Arribos periódicos según arrivalRate (autos/min -> prob/sec = arrivalRate / 60)
+  const arrivalProbPerSec = Math.max(0.005, arrivalRate / 60);
+  if (Math.random() < arrivalProbPerSec) {
     spawnIncomingVehicle();
   }
 
-  // Egresos periódicos
-  if (Math.random() < 0.35) {
+  // Egresos periódicos (balanceados según tasa de arribo)
+  const exitProbPerSec = Math.max(0.005, (arrivalRate / 60) * 0.85);
+  if (Math.random() < exitProbPerSec) {
     handleVehicleExit();
   }
 
-  // Actualizar dinámica de pasillos y rampas
-  const inTransitCount = isJamActive ? 14 : Math.floor(3 + Math.random() * 5);
+  // Actualizar dinámica de pasillos y rampas estrictamente según agentes reales
   corridors.forEach((c) => {
+    const activeCount = navigatingVehicles.filter((v) => v.route[v.stepIndex] === c.id).length;
     if (isJamActive && c.id === jammedCorridor) {
-      c.vehicles = Math.min(c.capacity, Math.floor(c.capacity * 0.95));
+      c.vehicles = Math.min(c.capacity, Math.max(activeCount, Math.floor(c.capacity * 0.95)));
       c.density = 95;
       c.isJammed = true;
     } else {
-      c.vehicles = Math.floor(Math.random() * (c.capacity * 0.35));
+      c.vehicles = activeCount;
       c.density = Math.round((c.vehicles / c.capacity) * 100);
       c.isJammed = c.density >= 75;
     }
@@ -327,7 +379,7 @@ function generateTelemetryPayload() {
     total_spots: TOTAL_SPOTS,
     total_occupied: totalOccupied,
     total_available: totalAvailable,
-    in_transit: isJamActive ? 14 : 4,
+    in_transit: navigatingVehicles.length,
     arrival_rate: arrivalRate,
     is_jam_active: isJamActive,
     jammed_corridor: jammedCorridor,

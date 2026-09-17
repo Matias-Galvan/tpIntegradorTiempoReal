@@ -3,9 +3,9 @@ import ParkingFloorPlan from './ParkingFloorPlan';
 
 /**
  * ParkingFloorMap
- * Vista interactiva de planta de estacionamiento de 100 plazas:
- * - Modo Plano Arquitectónico 2D (con rampas, carriles viales, sentidos de circulación y siluetas de autos).
- * - Modo Grilla Matricial (100 celdas LED con micro-inspección de T_in).
+ * Vista interactiva del estacionamiento:
+ * - Plano Arquitectónico 2D (con rampas, carriles viales, sentidos de circulación, bahías PMR/EV y ruta peatonal).
+ * - Grilla Matricial de 100 sensores digitales.
  */
 export const ParkingFloorMap = React.memo(function ParkingFloorMap({
   spots = [],
@@ -14,6 +14,8 @@ export const ParkingFloorMap = React.memo(function ParkingFloorMap({
   isJamActive = false,
   inTransit = 0,
   isEmergency = false,
+  searchedSpotId = null,
+  onOpenBilling = null,
 }) {
   const [selectedFloor, setSelectedFloor] = useState(activeFloor || 'A');
   const [viewMode, setViewMode] = useState('PLAN'); // 'PLAN' | 'GRID'
@@ -66,13 +68,13 @@ export const ParkingFloorMap = React.memo(function ParkingFloorMap({
 
         {/* Acciones de vista y contadores de aforo del piso */}
         <div className="floor-filter-actions">
-          {/* Conmutador de modo de visualización: Plano vs Grilla */}
+          {/* Conmutador de modo de visualización: Plano vs 3D vs Grilla */}
           <div className="view-mode-toggle-group">
             <button
               type="button"
               className={`view-toggle-btn ${viewMode === 'PLAN' ? 'view-active' : ''}`}
               onClick={() => setViewMode('PLAN')}
-              title="Plano arquitectónico interactivo con rampas y carriles viales"
+              title="Plano arquitectónico interactivo con rampas, carriles viales, bahías PMR/EV y ruta peatonal"
             >
               🗺️ Plano 2D
             </button>
@@ -80,7 +82,7 @@ export const ParkingFloorMap = React.memo(function ParkingFloorMap({
               type="button"
               className={`view-toggle-btn ${viewMode === 'GRID' ? 'view-active' : ''}`}
               onClick={() => setViewMode('GRID')}
-              title="Grilla matricial de 100 sensores"
+              title="Grilla matricial de 100 sensores digitales"
             >
               🔢 Grilla 100
             </button>
@@ -131,6 +133,7 @@ export const ParkingFloorMap = React.memo(function ParkingFloorMap({
           isJamActive={isJamActive}
           inTransit={inTransit}
           isEmergency={isEmergency}
+          searchedSpotId={searchedSpotId}
         />
       )}
 
@@ -157,7 +160,9 @@ export const ParkingFloorMap = React.memo(function ParkingFloorMap({
                       <span className={`sensor-light ${spot.occ ? 'sensor-red' : 'sensor-green'}`} />
                     </div>
                     <span className="spot-id-label">{spot.id}</span>
-                    <span className="spot-icon">{spot.occ ? '🚗' : '🅿️'}</span>
+                    <span className="spot-icon">
+                      {spot.occ ? (spot.spotType === 'EV' ? '⚡' : '🚗') : (spot.spotType === 'PMR' ? '♿' : spot.spotType === 'EV' ? '🔌' : '🅿️')}
+                    </span>
                     {spot.occ && <span className="spot-plate-tag">{spot.car.split(' ')[0]}</span>}
                   </div>
                 );
@@ -192,6 +197,17 @@ export const ParkingFloorMap = React.memo(function ParkingFloorMap({
               </span>
             </div>
 
+            <div className="inspector-row">
+              <span className="row-label">Tipología de Plaza:</span>
+              <span className="row-value">
+                {selectedSpot.spotType === 'PMR'
+                  ? '♿ Movilidad Reducida (PMR)'
+                  : selectedSpot.spotType === 'EV'
+                    ? '⚡ Electrolinera (Cargador 22kW)'
+                    : '🚗 Plaza Estándar'}
+              </span>
+            </div>
+
             {selectedSpot.occ ? (
               <>
                 <div className="inspector-row">
@@ -202,9 +218,29 @@ export const ParkingFloorMap = React.memo(function ParkingFloorMap({
                   <span className="row-label">Hora Exacta de Entrada (T_in):</span>
                   <span className="row-value font-mono highlight-time">{selectedSpot.t_in || '--:--:--'}</span>
                 </div>
+                {selectedSpot.spotType === 'EV' && (
+                  <div className="inspector-row">
+                    <span className="row-label">Carga de Batería:</span>
+                    <span className="row-value font-mono" style={{ color: '#10b981', fontWeight: '800' }}>
+                      🔋 {selectedSpot.batteryLevel || 75}% (Carga Rápida Activa)
+                    </span>
+                  </div>
+                )}
                 <div className="inspector-row">
                   <span className="row-label">Planta y Ubicación:</span>
                   <span className="row-value">Planta {selectedSpot.floor} (Puesto {selectedSpot.num})</span>
+                </div>
+
+                {/* Botón para abrir el ticket de cobro y salida */}
+                <div className="inspector-action-row" style={{ marginTop: '12px', display: 'flex', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    style={{ fontSize: '11px', padding: '6px 12px' }}
+                    onClick={() => onOpenBilling && onOpenBilling(selectedSpot)}
+                  >
+                    💳 Cobrar y Registrar Salida (Ticket Digital)
+                  </button>
                 </div>
               </>
             ) : (

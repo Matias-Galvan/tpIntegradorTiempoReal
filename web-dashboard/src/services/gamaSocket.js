@@ -252,63 +252,70 @@ class GamaSocketService {
   }
 
   /**
-   * Configura la tasa de arribo para el estacionamiento inteligente
+   * Configura la tasa de arribo para el estacionamiento inteligente (en autos/minuto)
    */
   setParkingArrivalRate(rate) {
+    const ratePerMin = rate >= 1 ? Math.round(rate) : Math.max(1, Math.round(rate * 60));
+    const probRate = Number((ratePerMin / 60).toFixed(4));
+
+    const cmd = {
+      type: 'ask',
+      agent: 'simulation[0]',
+      action: 'set_arrival_rate_cmd',
+      args: JSON.stringify({ new_rate: probRate, rate_per_min: ratePerMin }),
+    };
     if (this.expId) {
-      this.sendCommand({
-        type: 'ask',
-        exp_id: String(this.expId),
-        agent: 'simulation[0]',
-        action: 'set_arrival_rate_cmd',
-        args: JSON.stringify({ new_rate: rate }),
-      });
+      cmd.exp_id = String(this.expId);
     }
+    return this.sendCommand(cmd);
   }
 
   /**
    * Induce un atascamiento en pasillo o rampa
    */
   triggerParkingJam(corridor = 'RAMP_A_B') {
+    const cmd = {
+      type: 'ask',
+      agent: 'simulation[0]',
+      action: 'trigger_jam_cmd',
+      args: JSON.stringify({ corridor_target: corridor }),
+    };
     if (this.expId) {
-      this.sendCommand({
-        type: 'ask',
-        exp_id: String(this.expId),
-        agent: 'simulation[0]',
-        action: 'trigger_jam_cmd',
-        args: JSON.stringify({ corridor_target: corridor }),
-      });
+      cmd.exp_id = String(this.expId);
     }
+    return this.sendCommand(cmd);
   }
 
   /**
    * Despeja cualquier atascamiento activo
    */
   clearParkingJam() {
+    const cmd = {
+      type: 'ask',
+      agent: 'simulation[0]',
+      action: 'clear_jam_cmd',
+      args: '{}',
+    };
     if (this.expId) {
-      this.sendCommand({
-        type: 'ask',
-        exp_id: String(this.expId),
-        agent: 'simulation[0]',
-        action: 'clear_jam_cmd',
-        args: '{}',
-      });
+      cmd.exp_id = String(this.expId);
     }
+    return this.sendCommand(cmd);
   }
 
   /**
    * Dispara el ingreso manual de un vehículo en la barrera principal
    */
   spawnManualVehicle() {
+    const cmd = {
+      type: 'ask',
+      agent: 'simulation[0]',
+      action: 'spawn_manual_vehicle',
+      args: '{}',
+    };
     if (this.expId) {
-      this.sendCommand({
-        type: 'ask',
-        exp_id: String(this.expId),
-        agent: 'simulation[0]',
-        action: 'spawn_manual_vehicle',
-        args: '{}',
-      });
+      cmd.exp_id = String(this.expId);
     }
+    return this.sendCommand(cmd);
   }
 
   subscribe(callback) {
@@ -535,7 +542,9 @@ class GamaSocketService {
         totalOccupied: payload.total_occupied ?? 0,
         totalAvailable: payload.total_available ?? (400 - (payload.total_occupied ?? 0)),
         inTransit: payload.in_transit ?? 0,
-        arrivalRate: payload.arrival_rate ?? 0.5,
+        arrivalRate: payload.arrival_rate !== undefined
+          ? (payload.arrival_rate <= 1 ? Math.max(1, Math.round(payload.arrival_rate * 60)) : Math.round(payload.arrival_rate))
+          : 4,
         isJamActive: payload.is_jam_active ?? false,
         jammedCorridor: payload.jammed_corridor ?? '',
         floors: payload.floors ?? [],

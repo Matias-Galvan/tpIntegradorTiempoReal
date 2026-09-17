@@ -9,7 +9,7 @@ export const ParkingControls = React.memo(function ParkingControls({
   onPlay,
   onPause,
   onStep,
-  arrivalRate = 0.5,
+  arrivalRate = 4,
   onRateChange,
   onSpawnManual,
   disabled = false,
@@ -68,15 +68,19 @@ export const ParkingControls = React.memo(function ParkingControls({
           <span className="rate-label">Tasa de Ingreso Vehicular:</span>
           <input
             type="range"
-            min="0.1"
-            max="1.0"
-            step="0.05"
+            min="1"
+            max="20"
+            step="1"
             value={arrivalRate}
             onChange={(e) => onRateChange && onRateChange(Number(e.target.value))}
             className="rate-slider"
+            title="Ajustar flujo de arribos vehiculares por minuto"
           />
           <span className="rate-value-pill">
-            {Math.round(arrivalRate * 60)} autos / min
+            <strong>{arrivalRate}</strong> autos / min{' '}
+            <small style={{ opacity: 0.85, fontSize: '0.8em' }}>
+              (~1 c/ {Math.round(60 / Math.max(1, arrivalRate))}s)
+            </small>
           </span>
         </div>
       </div>

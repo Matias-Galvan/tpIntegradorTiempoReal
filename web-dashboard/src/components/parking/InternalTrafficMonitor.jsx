@@ -61,18 +61,39 @@ export const InternalTrafficMonitor = React.memo(function InternalTrafficMonitor
         </div>
       </div>
 
-      {/* Banner de alerta crítica si hay algún atascamiento detectado */}
+      {/* Panel de Alarma SCADA (ISA-18.2 Annunciator) sin animaciones de escala */}
       {(isJamActive || jammedList.length > 0) && (
-        <div className="jam-alert-banner">
-          <div className="jam-alert-icon">⚠️</div>
-          <div className="jam-alert-text">
-            <strong>ALERTA DE ATASCAMIENTO INTERNO (SDTR):</strong>
-            <span>
-              {jammedList.length > 0
-                ? `Cuello de botella detectado en: ${jammedList.map((j) => j.name).join(', ')}. Vehículos detenidos.`
-                : 'Atascamiento inducido en rampas de acceso. El flujo hacia las plantas superiores se encuentra demorado.'}
-            </span>
+        <div className="scada-alarm-annunciator">
+          <div className="scada-hazard-bar" />
+          <div className="scada-alarm-content">
+            <div className="scada-alarm-header">
+              <div className="scada-alarm-badge">
+                <span className="scada-beacon-dot" />
+                <span className="scada-alarm-code">ALARM 0x4B // CONGESTION_INTERLOCK</span>
+              </div>
+              <span className="scada-alarm-status">ACTIVO</span>
+            </div>
+            <div className="scada-alarm-body">
+              <span className="scada-alarm-title">
+                {jammedList.length > 0
+                  ? `Cuello de botella detectado en: ${jammedList.map((j) => j.name).join(', ')}`
+                  : 'Atascamiento inducido en rampas de acceso. Tránsito en espera de fase.'}
+              </span>
+              <span className="scada-alarm-desc">
+                Protocolo de exclusión mutua activo. Semáforos alternando según demanda para evitar bloqueos.
+              </span>
+            </div>
           </div>
+          {onClearJam && (
+            <button
+              type="button"
+              className="scada-alarm-ack-btn"
+              onClick={onClearJam}
+              title="Reconocer alarma y despejar tramo"
+            >
+              DESPEJAR
+            </button>
+          )}
         </div>
       )}
 
